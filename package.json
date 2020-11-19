@@ -115,5 +115,8 @@
         "statements": 90
       }
     }
+  },
+  "devDependencies": {
+    "d3-force": "2.1.1"
   }
 }
