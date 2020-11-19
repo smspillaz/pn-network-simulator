@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Helmet } from 'react-helmet-async';
 import styled from 'styled-components';
 
@@ -128,6 +129,30 @@ const NodeTable = ({
   );
 };
 
+const FlexRow = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+`;
+
+const FlexCol = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+`;
+
+const FlexItem = styled.div`
+  width: ${(props: FlexItemProps) => props.width}%;
+`;
+
+interface FlexItemProps {
+  width: number;
+};
+
+FlexItem.propTypes = {
+  width: PropTypes.number.isRequired,
+};
+
 export function HomePage() {
   const graph = {
     nodes: [
@@ -204,6 +229,7 @@ export function HomePage() {
       labelProperty: 'label',
       renderLabel: true,
     },
+    width: 400,
   };
 
   const algorithmNext = () => {
@@ -279,63 +305,57 @@ export function HomePage() {
       <Container>
         <Heading>Port-Numbered Network Simulator</Heading>
         <div style={{ height: '50vh' }}>
-          <Graph id="graph" data={graphDefinition} config={myConfig} />
+          <FlexRow>
+            <FlexItem width={60}>
+              <Graph id="graph" data={graphDefinition} config={myConfig} />
+            </FlexItem>
+            <FlexItem width={40}>
+              <FlexCol>
+                <p>Send Function</p>
+                <textarea
+                  rows={10}
+                  style={{ width: '90%', margin: 'auto' }}
+                  onChange={event =>
+                    filterValidJS(3, event.target.value, f =>
+                      setSendFunction({ call: f }),
+                    )
+                  }
+                />
+              </FlexCol>
+              <FlexCol>
+                <p>Receive Function</p>
+                <textarea
+                  rows={10}
+                  style={{ width: '90%', margin: 'auto' }}
+                  onChange={event =>
+                    filterValidJS(3, event.target.value, f =>
+                      setReceiveFunction({ call: f }),
+                    )
+                  }
+                />
+              </FlexCol>
+              <FlexCol>
+                <p>End Round Function</p>
+                <textarea
+                  rows={10}
+                  style={{ width: '90%', margin: 'auto' }}
+                  onChange={event =>
+                    filterValidJS(3, event.target.value, f =>
+                      setEndRoundFunction({ call: f }),
+                    )
+                  }
+                />
+              </FlexCol>
+            </FlexItem>
+          </FlexRow>
           <NodeTable
             nodeInitialStates={nodeInitialStates}
             nodeInitialStateChanged={setNodeInitialState}
             nodeStates={nodeStates}
           />
           <div>
-            <table style={{ width: '100%' }}>
-              <thead>
-                <tr>
-                  <td>Send Function</td>
-                  <td>Receive Function</td>
-                  <td>End Round Function</td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <textarea
-                      rows={10}
-                      style={{ width: '90%', margin: 'auto' }}
-                      onChange={event =>
-                        filterValidJS(3, event.target.value, f =>
-                          setSendFunction({ call: f }),
-                        )
-                      }
-                    />
-                  </td>
-                  <td>
-                    <textarea
-                      rows={10}
-                      style={{ width: '90%', margin: 'auto' }}
-                      onChange={event =>
-                        filterValidJS(4, event.target.value, f =>
-                          setReceiveFunction({ call: f }),
-                        )
-                      }
-                    />
-                  </td>
-                  <td>
-                    <textarea
-                      rows={10}
-                      style={{ width: '90%', margin: 'auto' }}
-                      onChange={event =>
-                        filterValidJS(4, event.target.value, f =>
-                          setEndRoundFunction({ call: f }),
-                        )
-                      }
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div>
-              <p>Round: {round}</p>
-              <button onClick={algorithmNext}>Next Step</button>
-            </div>
+            <p>Round: {round}</p>
+            <button onClick={algorithmNext}>Next Step</button>
           </div>
         </div>
       </Container>
