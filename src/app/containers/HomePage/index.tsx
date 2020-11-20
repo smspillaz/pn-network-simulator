@@ -428,9 +428,12 @@ export function HomePage() {
         // After messages have been exchanged, reduce currentNodeStates
         // into nodeStates
         graphDefinition.nodes.forEach(({ id }) => {
-          const state = endRoundFunction.call(round, currentNodeStates[id]);
+          const state = endRoundFunction.call(
+            round,
+            currentNodeStates[id as number],
+          );
           console.log(`node ${id} end: ${JSON.stringify(state)}`);
-          currentNodeStates[id] = state;
+          currentNodeStates[id as number] = state;
         });
 
         return round + 1;
