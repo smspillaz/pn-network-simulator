@@ -147,10 +147,52 @@ const FlexItem = styled.div`
 
 interface FlexItemProps {
   width: number;
-};
+}
 
 FlexItem.propTypes = {
   width: PropTypes.number.isRequired,
+};
+
+const INIT_FUNCTIONS = {
+  default: `n => ([n]);`,
+  colorReduction: `n => ([n]);`,
+};
+
+const SEND_FUNCTIONS = {
+  default: `(r, p, s) => ([]);`,
+  colorReduction: `(r, p, s) => ([s[0]]);`,
+};
+
+const RECEIVE_FUNCTIONS = {
+  default: `(r, p, s, m) => s;`,
+  colorReduction: `(r, d, s, m) => ([s[0], [...Array.from(s[1]), m[0]]]);`,
+};
+
+const END_ROUND_FUNCTIONS = {
+  default: `(r, s) => s;`,
+  colorReduction: `(r, s) => {
+  const difference = (setA, setB) => {
+      let _difference = new Set(setA)
+      for (let elem of setB) {
+          _difference.delete(elem)
+      }
+      return _difference
+  };
+
+  const [c, others] = s;
+
+  const avail = new Set(Array.from(Array(others.length).keys()));
+  const taken = new Set(others);
+  const diff = difference(avail, taken);
+  console.log('diff is', diff, avail, taken);
+  const min = Array.from(diff).length ? Array.from(diff).reduce((acc, n) => Math.min(acc, n)) : c;
+
+  const greatestOthers = others.reduce((acc, n) => Math.max(acc, n));
+
+  const final = c > greatestOthers ? min : c;
+
+  return [final, []];
+}`,
 };
 
 export function HomePage() {
