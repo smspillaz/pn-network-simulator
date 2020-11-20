@@ -294,6 +294,9 @@ export function HomePage() {
 
     setRound(0);
   };
+  const [initFunction, setInitFunction]: [any, CallableFunction] = useState({
+    call: (n) => [n],
+  });
   const [sendFunction, setSendFunction]: [any, CallableFunction] = useState({
     call: (r, d, x) => [],
   });
@@ -305,18 +308,20 @@ export function HomePage() {
     any,
     CallableFunction,
   ] = useState({ call: (r, x) => x });
-  const [sendFunctionText, setSendFunctionText]: [
-    any,
-    CallableFunction,
-  ] = useState(SEND_FUNCTIONS['default']);
-  const [receiveFunctionText, setReceiveFunctionText]: [
-    any,
-    CallableFunction,
-  ] = useState(RECEIVE_FUNCTIONS['default']);
-  const [endRoundFunctionText, setEndRoundFunctionText]: [
-    any,
-    CallableFunction,
-  ] = useState(END_ROUND_FUNCTIONS['default']);
+  const [initFunctionText, setInitFunctionText] = useState(INIT_FUNCTIONS['default']);
+  const [sendFunctionText, setSendFunctionText] = useState(SEND_FUNCTIONS['default']);
+  const [receiveFunctionText, setReceiveFunctionText] = useState(RECEIVE_FUNCTIONS['default']);
+  const [endRoundFunctionText, setEndRoundFunctionText] = useState(END_ROUND_FUNCTIONS['default']);
+  const updateInitFunction = (t, next) => {
+    setInitFunctionText(t);
+    filterValidJS(1, debuggable(t, 'init-func.js'), (f) => {
+      setInitFunction({ call: f })
+
+      if (next) {
+        next(f);
+      }
+    });
+  };
   const updateSendFunction = t => {
     setSendFunctionText(t);
     filterValidJS(3, t, f => setSendFunction({ call: f }));
@@ -458,6 +463,15 @@ export function HomePage() {
               </FlexCol>
             </FlexItem>
             <FlexItem width={40}>
+            <FlexCol>
+                <p>Init Function</p>
+                <textarea
+                  value={initFunctionText}
+                  rows={10}
+                  style={{ width: '90%', margin: 'auto' }}
+                  onChange={event => updateInitFunction(event.target.value, null)}
+                />
+              </FlexCol>
               <FlexCol>
                 <p>Send Function</p>
                 <textarea
@@ -504,11 +518,21 @@ export function HomePage() {
                 <p>Load Algorithm</p>
                 <select
                   onChange={e => {
-                    updateSendFunction(SEND_FUNCTIONS[e?.target?.value]);
-                    updateReceiveFunction(RECEIVE_FUNCTIONS[e?.target?.value]);
-                    updateEndRoundFunction(
-                      END_ROUND_FUNCTIONS[e?.target?.value],
-                    );
+                    updateInitFunction(INIT_FUNCTIONS[e?.target.value], (init) => {
+                      updateSendFunction(SEND_FUNCTIONS[e?.target?.value]);
+                      updateReceiveFunction(RECEIVE_FUNCTIONS[e?.target?.value]);
+                      updateEndRoundFunction(
+                        END_ROUND_FUNCTIONS[e?.target?.value],
+                      );
+  
+                      setRound(0);
+  
+                      const nodeIds = returnNodes(linkDefinitions);
+                      const nodeStates = nodeIds.map(i => init(i));
+  
+                      setNodeInitialStates(nodeStates);
+                      setNodeStates(nodeStates);
+                    });
                   }}
                 >
                   <option value="default">Default</option>
