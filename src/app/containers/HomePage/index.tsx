@@ -240,10 +240,9 @@ const returnNodes = linkDefinitions => {
   return Array.from(nodesSet);
 };
 
-const debuggable = (t, name) => (
+const debuggable = (t, name) =>
   `${t}
-//# sourceURL=${name}.js`
-);
+//# sourceURL=${name}.js`;
 
 export function HomePage() {
   const [linkDefinitionsText, setLinkDefinitionsText] = useState(
@@ -255,14 +254,14 @@ export function HomePage() {
   const updateLinksDefinition = value => {
     setLinkDefinitionsText(value);
 
-    filterValidJSArray(value, (arr) => {
+    filterValidJSArray(value, arr => {
       setLinkDefinitions(arr);
 
       const nodeIds = returnNodes(arr);
       const nodeStates = nodeIds.map(i => initFunction.call(i));
 
-      console.log('Set node states to ', nodeStates)
-  
+      console.log('Set node states to ', nodeStates);
+
       setNodeInitialStates(nodeStates);
       setNodeStates(nodeStates);
     });
@@ -295,7 +294,7 @@ export function HomePage() {
     setRound(0);
   };
   const [initFunction, setInitFunction]: [any, CallableFunction] = useState({
-    call: (n) => [n],
+    call: n => [n],
   });
   const [sendFunction, setSendFunction]: [any, CallableFunction] = useState({
     call: (r, d, x) => [],
@@ -308,14 +307,22 @@ export function HomePage() {
     any,
     CallableFunction,
   ] = useState({ call: (r, x) => x });
-  const [initFunctionText, setInitFunctionText] = useState(INIT_FUNCTIONS['default']);
-  const [sendFunctionText, setSendFunctionText] = useState(SEND_FUNCTIONS['default']);
-  const [receiveFunctionText, setReceiveFunctionText] = useState(RECEIVE_FUNCTIONS['default']);
-  const [endRoundFunctionText, setEndRoundFunctionText] = useState(END_ROUND_FUNCTIONS['default']);
+  const [initFunctionText, setInitFunctionText] = useState(
+    INIT_FUNCTIONS['default'],
+  );
+  const [sendFunctionText, setSendFunctionText] = useState(
+    SEND_FUNCTIONS['default'],
+  );
+  const [receiveFunctionText, setReceiveFunctionText] = useState(
+    RECEIVE_FUNCTIONS['default'],
+  );
+  const [endRoundFunctionText, setEndRoundFunctionText] = useState(
+    END_ROUND_FUNCTIONS['default'],
+  );
   const updateInitFunction = (t, next) => {
     setInitFunctionText(t);
-    filterValidJS(1, debuggable(t, 'init-func.js'), (f) => {
-      setInitFunction({ call: f })
+    filterValidJS(1, debuggable(t, 'init-func.js'), f => {
+      setInitFunction({ call: f });
 
       if (next) {
         next(f);
@@ -324,15 +331,21 @@ export function HomePage() {
   };
   const updateSendFunction = t => {
     setSendFunctionText(t);
-    filterValidJS(3, debuggable(t, 'send-func.js'), f => setSendFunction({ call: f }));
+    filterValidJS(3, debuggable(t, 'send-func.js'), f =>
+      setSendFunction({ call: f }),
+    );
   };
   const updateReceiveFunction = t => {
     setReceiveFunctionText(t);
-    filterValidJS(4, debuggable(t, 'receive-func.js'), f => setReceiveFunction({ call: f }));
+    filterValidJS(4, debuggable(t, 'receive-func.js'), f =>
+      setReceiveFunction({ call: f }),
+    );
   };
   const updateEndRoundFunction = t => {
     setEndRoundFunctionText(t);
-    filterValidJS(2, debuggable(t, 'end-round-func.js'), f => setEndRoundFunction({ call: f }));
+    filterValidJS(2, debuggable(t, 'end-round-func.js'), f =>
+      setEndRoundFunction({ call: f }),
+    );
   };
   const [nodeStates, setNodeStates] = useState(Array.from(nodeInitialStates));
   const [round, setRound] = useState(0);
@@ -386,7 +399,9 @@ export function HomePage() {
             console.log(
               `source ${nodeIdsMap.get(source)}:${sourcePort}:${JSON.stringify(
                 currentNodeStates[nodeIdsMap.get(source) as number],
-              )} -> target ${nodeIdsMap.get(target)}:${targetPort}:${JSON.stringify(
+              )} -> target ${nodeIdsMap.get(
+                target,
+              )}:${targetPort}:${JSON.stringify(
                 currentNodeStates[nodeIdsMap.get(target) as number],
               )} msg: ${JSON.stringify(sourceTargetMsg)}`,
             );
@@ -398,7 +413,9 @@ export function HomePage() {
             );
             console.log(`target state: ${JSON.stringify(targetNextState)}`);
 
-            currentNodeStates[nodeIdsMap.get(target) as number] = targetNextState;
+            currentNodeStates[
+              nodeIdsMap.get(target) as number
+            ] = targetNextState;
 
             // Message gets sent from source to target and target to source
             const targetSourceMsg = sendFunction.call(
@@ -409,7 +426,9 @@ export function HomePage() {
             console.log(
               `target ${nodeIdsMap.get(target)}:${targetPort}:${JSON.stringify(
                 currentNodeStates[nodeIdsMap.get(target) as number],
-              )} -> source ${nodeIdsMap.get(source)}:${sourcePort}:${JSON.stringify(
+              )} -> source ${nodeIdsMap.get(
+                source,
+              )}:${sourcePort}:${JSON.stringify(
                 currentNodeStates[nodeIdsMap.get(source) as number],
               )} msg: ${JSON.stringify(targetSourceMsg)}`,
             );
@@ -468,13 +487,15 @@ export function HomePage() {
               </FlexCol>
             </FlexItem>
             <FlexItem width={40}>
-            <FlexCol>
+              <FlexCol>
                 <p>Init Function</p>
                 <textarea
                   value={initFunctionText}
                   rows={10}
                   style={{ width: '90%', margin: 'auto' }}
-                  onChange={event => updateInitFunction(event.target.value, null)}
+                  onChange={event =>
+                    updateInitFunction(event.target.value, null)
+                  }
                 />
               </FlexCol>
               <FlexCol>
@@ -523,21 +544,26 @@ export function HomePage() {
                 <p>Load Algorithm</p>
                 <select
                   onChange={e => {
-                    updateInitFunction(INIT_FUNCTIONS[e?.target.value], (init) => {
-                      updateSendFunction(SEND_FUNCTIONS[e?.target?.value]);
-                      updateReceiveFunction(RECEIVE_FUNCTIONS[e?.target?.value]);
-                      updateEndRoundFunction(
-                        END_ROUND_FUNCTIONS[e?.target?.value],
-                      );
-  
-                      setRound(0);
-  
-                      const nodeIds = returnNodes(linkDefinitions);
-                      const nodeStates = nodeIds.map(i => init(i));
-  
-                      setNodeInitialStates(nodeStates);
-                      setNodeStates(nodeStates);
-                    });
+                    updateInitFunction(
+                      INIT_FUNCTIONS[e?.target.value],
+                      init => {
+                        updateSendFunction(SEND_FUNCTIONS[e?.target?.value]);
+                        updateReceiveFunction(
+                          RECEIVE_FUNCTIONS[e?.target?.value],
+                        );
+                        updateEndRoundFunction(
+                          END_ROUND_FUNCTIONS[e?.target?.value],
+                        );
+
+                        setRound(0);
+
+                        const nodeIds = returnNodes(linkDefinitions);
+                        const nodeStates = nodeIds.map(i => init(i));
+
+                        setNodeInitialStates(nodeStates);
+                        setNodeStates(nodeStates);
+                      },
+                    );
                   }}
                 >
                   <option value="default">Default</option>
