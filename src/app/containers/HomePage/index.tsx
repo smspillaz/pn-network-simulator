@@ -324,18 +324,20 @@ export function HomePage() {
   };
   const updateSendFunction = t => {
     setSendFunctionText(t);
-    filterValidJS(3, t, f => setSendFunction({ call: f }));
+    filterValidJS(3, debuggable(t, 'send-func.js'), f => setSendFunction({ call: f }));
   };
   const updateReceiveFunction = t => {
     setReceiveFunctionText(t);
-    filterValidJS(4, t, f => setReceiveFunction({ call: f }));
+    filterValidJS(4, debuggable(t, 'receive-func.js'), f => setReceiveFunction({ call: f }));
   };
   const updateEndRoundFunction = t => {
     setEndRoundFunctionText(t);
-    filterValidJS(2, t, f => setEndRoundFunction({ call: f }));
+    filterValidJS(2, debuggable(t, 'end-round-func.js'), f => setEndRoundFunction({ call: f }));
   };
   const [nodeStates, setNodeStates] = useState(Array.from(nodeInitialStates));
   const [round, setRound] = useState(0);
+
+  console.log(nodeStates);
 
   const graphDefinition = {
     nodes: nodeStates.map((c, i) => ({
