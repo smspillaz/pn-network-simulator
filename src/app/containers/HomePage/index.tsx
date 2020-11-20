@@ -155,7 +155,7 @@ FlexItem.propTypes = {
 
 const INIT_FUNCTIONS = {
   default: `n => ([n]);`,
-  colorReduction: `n => ([n]);`,
+  colorReduction: `n => ([n, []]);`,
 };
 
 const SEND_FUNCTIONS = {
