@@ -314,7 +314,11 @@ export function HomePage() {
               nodeStates[source],
             );
             console.log(
-              `source ${source}:${sourcePort}:${JSON.stringify(currentNodeStates[source])} -> target ${target}:${targetPort}:${JSON.stringify(currentNodeStates[target])} msg: ${JSON.stringify(sourceTargetMsg)}`,
+              `source ${source}:${sourcePort}:${JSON.stringify(
+                currentNodeStates[source],
+              )} -> target ${target}:${targetPort}:${JSON.stringify(
+                currentNodeStates[target],
+              )} msg: ${JSON.stringify(sourceTargetMsg)}`,
             );
             const targetNextState = receiveFunction.call(
               round,
@@ -333,7 +337,11 @@ export function HomePage() {
               currentNodeStates[target],
             );
             console.log(
-              `target ${target}:${targetPort}:${JSON.stringify(currentNodeStates[target])} -> source ${source}:${sourcePort}:${JSON.stringify(currentNodeStates[source])} msg: ${JSON.stringify(targetSourceMsg)}`,
+              `target ${target}:${targetPort}:${JSON.stringify(
+                currentNodeStates[target],
+              )} -> source ${source}:${sourcePort}:${JSON.stringify(
+                currentNodeStates[source],
+              )} msg: ${JSON.stringify(targetSourceMsg)}`,
             );
             const sourceNextState = receiveFunction.call(
               round,
