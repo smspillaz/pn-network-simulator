@@ -166,7 +166,7 @@ FlexItem.propTypes = {
 
 const INIT_FUNCTIONS = {
   default: `n => ([n]);`,
-  colorReduction: `n => ([n, []]);`,
+  colorReduction: `n => ([n]);`,
 };
 
 const SEND_FUNCTIONS = {
@@ -175,24 +175,18 @@ const SEND_FUNCTIONS = {
 };
 
 const RECEIVE_FUNCTIONS = {
-  default: `(r, p, s, m) => s;`,
-  colorReduction: `(r, d, s, m) => (
-    [s[0], [...Array.from(s[1]), m[0]]]
-);`,
-};
-
-const END_ROUND_FUNCTIONS = {
-  default: `(r, s) => s;`,
-  colorReduction: `(r, s) => {
+  default: `(r, s, m) => s;`,
+  colorReduction: `(r, s, m) => {
   const difference = (setA, setB) => {
-      let _difference = new Set(setA)
-      for (let elem of setB) {
-          _difference.delete(elem)
-      }
-      return Array.from(_difference)
+    let _difference = new Set(setA)
+    for (let elem of setB) {
+        _difference.delete(elem)
+    }
+    return Array.from(_difference)
   };
 
-  const [c, others] = s;
+  const c = s[0];
+  const others = m.map(([c]) => c);
 
   const avail = new Set(
     Array.from((new Array(
@@ -214,8 +208,8 @@ const END_ROUND_FUNCTIONS = {
 
   const final = c > greatestOthers ? min : c;
 
-  return [final, []];
-}`,
+  return [final];
+};`,
 };
 
 const LINK_DEFINITIONS = {
@@ -303,10 +297,6 @@ export function HomePage() {
     any,
     CallableFunction,
   ] = useState({ call: (r, d, x, m) => x });
-  const [endRoundFunction, setEndRoundFunction]: [
-    any,
-    CallableFunction,
-  ] = useState({ call: (r, x) => x });
   const [initFunctionText, setInitFunctionText] = useState(
     INIT_FUNCTIONS['default'],
   );
@@ -315,9 +305,6 @@ export function HomePage() {
   );
   const [receiveFunctionText, setReceiveFunctionText] = useState(
     RECEIVE_FUNCTIONS['default'],
-  );
-  const [endRoundFunctionText, setEndRoundFunctionText] = useState(
-    END_ROUND_FUNCTIONS['default'],
   );
   const updateInitFunction = (t, next) => {
     setInitFunctionText(t);
@@ -339,12 +326,6 @@ export function HomePage() {
     setReceiveFunctionText(t);
     filterValidJS(4, debuggable(t, 'receive-func.js'), f =>
       setReceiveFunction({ call: f }),
-    );
-  };
-  const updateEndRoundFunction = t => {
-    setEndRoundFunctionText(t);
-    filterValidJS(2, debuggable(t, 'end-round-func.js'), f =>
-      setEndRoundFunction({ call: f }),
     );
   };
   const [nodeStates, setNodeStates] = useState(Array.from(nodeInitialStates));
@@ -387,6 +368,13 @@ export function HomePage() {
       const currentNodeStates = Array.from(nodeStates);
 
       setRound(round => {
+        const messages = {};
+
+        graphDefinition.links.forEach(({ source, target }) => {
+          messages[source as number] = [];
+          messages[target as number] = [];
+        });
+
         // For each node in the graph
         graphDefinition.links.forEach(
           ({ source, target, sourcePort, targetPort }) => {
@@ -405,17 +393,7 @@ export function HomePage() {
                 currentNodeStates[nodeIdsMap.get(target) as number],
               )} msg: ${JSON.stringify(sourceTargetMsg)}`,
             );
-            const targetNextState = receiveFunction.call(
-              round,
-              targetPort,
-              currentNodeStates[nodeIdsMap.get(target) as number],
-              sourceTargetMsg,
-            );
-            console.log(`target state: ${JSON.stringify(targetNextState)}`);
-
-            currentNodeStates[
-              nodeIdsMap.get(target) as number
-            ] = targetNextState;
+            messages[target][targetPort] = sourceTargetMsg;
 
             // Message gets sent from source to target and target to source
             const targetSourceMsg = sendFunction.call(
@@ -424,35 +402,29 @@ export function HomePage() {
               currentNodeStates[target],
             );
             console.log(
-              `target ${nodeIdsMap.get(target)}:${targetPort}:${JSON.stringify(
+              `source ${nodeIdsMap.get(target)}:${targetPort}:${JSON.stringify(
                 currentNodeStates[nodeIdsMap.get(target) as number],
-              )} -> source ${nodeIdsMap.get(
+              )} -> target ${nodeIdsMap.get(
                 source,
               )}:${sourcePort}:${JSON.stringify(
                 currentNodeStates[nodeIdsMap.get(source) as number],
               )} msg: ${JSON.stringify(targetSourceMsg)}`,
             );
-            const sourceNextState = receiveFunction.call(
-              round,
-              sourcePort,
-              currentNodeStates[nodeIdsMap.get(source) as number],
-              targetSourceMsg,
-            );
-            console.log(`source state: ${JSON.stringify(sourceNextState)}`);
-
-            currentNodeStates[source] = sourceNextState;
+            messages[source][sourcePort] = targetSourceMsg;
           },
         );
 
         // After messages have been exchanged, reduce currentNodeStates
         // into nodeStates
         graphDefinition.nodes.forEach(({ id }) => {
-          const state = endRoundFunction.call(
+          const nextState = receiveFunction.call(
             round,
-            currentNodeStates[id as number],
+            currentNodeStates[nodeIdsMap.get(id as number) as number],
+            messages[id as number],
           );
-          console.log(`node ${id} end: ${JSON.stringify(state)}`);
-          currentNodeStates[id as number] = state;
+          console.log(`${id} next state: ${JSON.stringify(nextState)}`);
+
+          currentNodeStates[id as number] = nextState;
         });
 
         return round + 1;
@@ -516,15 +488,6 @@ export function HomePage() {
                   onChange={event => updateReceiveFunction(event.target.value)}
                 />
               </FlexCol>
-              <FlexCol>
-                <p>End Round Function</p>
-                <textarea
-                  value={endRoundFunctionText}
-                  rows={10}
-                  style={{ width: '90%', margin: 'auto' }}
-                  onChange={event => updateEndRoundFunction(event.target.value)}
-                />
-              </FlexCol>
             </FlexItem>
           </FlexRow>
           <NodeTable
@@ -550,9 +513,6 @@ export function HomePage() {
                         updateSendFunction(SEND_FUNCTIONS[e?.target?.value]);
                         updateReceiveFunction(
                           RECEIVE_FUNCTIONS[e?.target?.value],
-                        );
-                        updateEndRoundFunction(
-                          END_ROUND_FUNCTIONS[e?.target?.value],
                         );
 
                         setRound(0);
