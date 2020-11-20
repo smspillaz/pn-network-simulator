@@ -44,6 +44,17 @@ const filterValidJS = (expectedArgs, str, next) => {
   }
 };
 
+const filterValidJSArray = (str, next) => {
+  try {
+    console.log(`Trying to eval ${str}`);
+    const c = eval(str); // eslint-disable-line no-eval
+
+    if (Array.isArray(c)) next(c);
+  } catch (e) {
+    console.log(`Eval ${str}: ${e}`);
+  }
+};
+
 const fontSize = 14;
 const radius = 15;
 
@@ -207,26 +218,66 @@ const END_ROUND_FUNCTIONS = {
 }`,
 };
 
+const LINK_DEFINITIONS = {
+  default: `
+  [
+    { source: 0, target: 1, sourcePort: 0, targetPort: 0 },
+    { source: 0, target: 2, sourcePort: 1, targetPort: 0 },
+    { source: 1, target: 3, sourcePort: 1, targetPort: 0 },
+    { source: 1, target: 4, sourcePort: 2, targetPort: 0 },
+  ]
+`,
+};
+
+const returnNodes = linkDefinitions => {
+  const nodesSet: Set<Number> = new Set([]);
+
+  linkDefinitions.forEach(({ source, target }) => {
+    nodesSet.add(source);
+    nodesSet.add(target);
+  });
+
+  return Array.from(nodesSet);
+};
+
+const debuggable = (t, name) => (
+  `${t}
+//# sourceURL=${name}.js`
+);
+
 export function HomePage() {
+  const [linkDefinitionsText, setLinkDefinitionsText] = useState(
+    LINK_DEFINITIONS['default'],
+  );
+  const [linkDefinitions, setLinkDefinitions] = useState(
+    eval(LINK_DEFINITIONS['default']),
+  );
+  const updateLinksDefinition = value => {
+    setLinkDefinitionsText(value);
+
+    filterValidJSArray(value, (arr) => {
+      setLinkDefinitions(arr);
+
+      const nodeIds = returnNodes(arr);
+      const nodeStates = nodeIds.map(i => initFunction.call(i));
+
+      console.log('Set node states to ', nodeStates)
+  
+      setNodeInitialStates(nodeStates);
+      setNodeStates(nodeStates);
+    });
+  };
+
+  const nodeIds = returnNodes(linkDefinitions);
+  const nodeIdsMap = new Map(nodeIds.map((value, idx) => [idx, value]));
+  console.log(nodeIdsMap);
   const graph = {
-    nodes: [
-      { id: 0, label: 'Node 1', title: 'node 1 tootip text', color: 'yellow' },
-      { id: 1, label: 'Node 2', title: 'node 2 tootip text', color: 'brown' },
-      {
-        id: 2,
-        label: 'Node 3',
-        title: 'node 3 tootip text',
-        color: 'lightblue',
-      },
-      { id: 3, label: 'Node 4', title: 'node 4 tootip text' },
-      { id: 4, label: 'Node 5', title: 'node 5 tootip text' },
-    ],
-    links: [
-      { source: 0, target: 1, sourcePort: 0, targetPort: 0 },
-      { source: 0, target: 2, sourcePort: 1, targetPort: 0 },
-      { source: 1, target: 3, sourcePort: 1, targetPort: 0 },
-      { source: 1, target: 4, sourcePort: 2, targetPort: 0 },
-    ],
+    nodes: nodeIds.map(id => ({
+      id,
+      label: `Node ${id}`,
+      title: `Node ${id}`,
+    })),
+    links: linkDefinitions,
   };
 
   const [nodeInitialStates, setNodeInitialStates] = useState(
@@ -283,7 +334,7 @@ export function HomePage() {
 
   const graphDefinition = {
     nodes: nodeStates.map((c, i) => ({
-      id: i,
+      id: nodeIdsMap.get(i),
       label: String(c[0]),
       color: 'lightblue',
     })),
@@ -326,21 +377,21 @@ export function HomePage() {
               nodeStates[source],
             );
             console.log(
-              `source ${source}:${sourcePort}:${JSON.stringify(
-                currentNodeStates[source],
-              )} -> target ${target}:${targetPort}:${JSON.stringify(
-                currentNodeStates[target],
+              `source ${nodeIdsMap.get(source)}:${sourcePort}:${JSON.stringify(
+                currentNodeStates[nodeIdsMap.get(source) as number],
+              )} -> target ${nodeIdsMap.get(target)}:${targetPort}:${JSON.stringify(
+                currentNodeStates[nodeIdsMap.get(target) as number],
               )} msg: ${JSON.stringify(sourceTargetMsg)}`,
             );
             const targetNextState = receiveFunction.call(
               round,
               targetPort,
-              currentNodeStates[target],
+              currentNodeStates[nodeIdsMap.get(target) as number],
               sourceTargetMsg,
             );
             console.log(`target state: ${JSON.stringify(targetNextState)}`);
 
-            currentNodeStates[target] = targetNextState;
+            currentNodeStates[nodeIdsMap.get(target) as number] = targetNextState;
 
             // Message gets sent from source to target and target to source
             const targetSourceMsg = sendFunction.call(
@@ -349,16 +400,16 @@ export function HomePage() {
               currentNodeStates[target],
             );
             console.log(
-              `target ${target}:${targetPort}:${JSON.stringify(
-                currentNodeStates[target],
-              )} -> source ${source}:${sourcePort}:${JSON.stringify(
-                currentNodeStates[source],
+              `target ${nodeIdsMap.get(target)}:${targetPort}:${JSON.stringify(
+                currentNodeStates[nodeIdsMap.get(target) as number],
+              )} -> source ${nodeIdsMap.get(source)}:${sourcePort}:${JSON.stringify(
+                currentNodeStates[nodeIdsMap.get(source) as number],
               )} msg: ${JSON.stringify(targetSourceMsg)}`,
             );
             const sourceNextState = receiveFunction.call(
               round,
               sourcePort,
-              currentNodeStates[source],
+              currentNodeStates[nodeIdsMap.get(source) as number],
               targetSourceMsg,
             );
             console.log(`source state: ${JSON.stringify(sourceNextState)}`);
@@ -393,7 +444,18 @@ export function HomePage() {
         <div style={{ height: '50vh' }}>
           <FlexRow>
             <FlexItem width={60}>
-              <Graph id="graph" data={graphDefinition} config={myConfig} />
+              <FlexCol>
+                <Graph id="graph" data={graphDefinition} config={myConfig} />
+              </FlexCol>
+              <FlexCol>
+                <p>Link Definitions</p>
+                <textarea
+                  value={linkDefinitionsText}
+                  rows={10}
+                  style={{ width: '90%', margin: 'auto' }}
+                  onChange={event => updateLinksDefinition(event.target.value)}
+                />
+              </FlexCol>
             </FlexItem>
             <FlexItem width={40}>
               <FlexCol>
