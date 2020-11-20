@@ -200,6 +200,30 @@ export function HomePage() {
     any,
     CallableFunction,
   ] = useState({ call: (r, x) => x });
+  const [sendFunctionText, setSendFunctionText]: [
+    any,
+    CallableFunction,
+  ] = useState(SEND_FUNCTIONS['default']);
+  const [receiveFunctionText, setReceiveFunctionText]: [
+    any,
+    CallableFunction,
+  ] = useState(RECEIVE_FUNCTIONS['default']);
+  const [endRoundFunctionText, setEndRoundFunctionText]: [
+    any,
+    CallableFunction,
+  ] = useState(END_ROUND_FUNCTIONS['default']);
+  const updateSendFunction = t => {
+    setSendFunctionText(t);
+    filterValidJS(3, t, f => setSendFunction({ call: f }));
+  };
+  const updateReceiveFunction = t => {
+    setReceiveFunctionText(t);
+    filterValidJS(4, t, f => setReceiveFunction({ call: f }));
+  };
+  const updateEndRoundFunction = t => {
+    setEndRoundFunctionText(t);
+    filterValidJS(2, t, f => setEndRoundFunction({ call: f }));
+  };
   const [nodeStates, setNodeStates] = useState(Array.from(nodeInitialStates));
   const [round, setRound] = useState(0);
 
@@ -313,37 +337,28 @@ export function HomePage() {
               <FlexCol>
                 <p>Send Function</p>
                 <textarea
+                  value={sendFunctionText}
                   rows={10}
                   style={{ width: '90%', margin: 'auto' }}
-                  onChange={event =>
-                    filterValidJS(3, event.target.value, f =>
-                      setSendFunction({ call: f }),
-                    )
-                  }
+                  onChange={event => updateSendFunction(event.target.value)}
                 />
               </FlexCol>
               <FlexCol>
                 <p>Receive Function</p>
                 <textarea
+                  value={receiveFunctionText}
                   rows={10}
                   style={{ width: '90%', margin: 'auto' }}
-                  onChange={event =>
-                    filterValidJS(3, event.target.value, f =>
-                      setReceiveFunction({ call: f }),
-                    )
-                  }
+                  onChange={event => updateReceiveFunction(event.target.value)}
                 />
               </FlexCol>
               <FlexCol>
                 <p>End Round Function</p>
                 <textarea
+                  value={endRoundFunctionText}
                   rows={10}
                   style={{ width: '90%', margin: 'auto' }}
-                  onChange={event =>
-                    filterValidJS(3, event.target.value, f =>
-                      setEndRoundFunction({ call: f }),
-                    )
-                  }
+                  onChange={event => updateEndRoundFunction(event.target.value)}
                 />
               </FlexCol>
             </FlexItem>
@@ -353,10 +368,37 @@ export function HomePage() {
             nodeInitialStateChanged={setNodeInitialState}
             nodeStates={nodeStates}
           />
-          <div>
-            <p>Round: {round}</p>
-            <button onClick={algorithmNext}>Next Step</button>
-          </div>
+          <FlexRow>
+            <FlexItem width={20}>
+              <div>
+                <p>Round: {round}</p>
+                <button onClick={algorithmNext}>Next Step</button>
+              </div>
+            </FlexItem>
+            <FlexItem width={20}>
+              <div>
+                <p>Load Algorithm</p>
+                <select
+                  onChange={e => {
+                    updateSendFunction(SEND_FUNCTIONS[e?.target?.value]);
+                    updateReceiveFunction(RECEIVE_FUNCTIONS[e?.target?.value]);
+                    updateEndRoundFunction(
+                      END_ROUND_FUNCTIONS[e?.target?.value],
+                    );
+                  }}
+                >
+                  <option value="default">Default</option>
+                  <option value="vertexCover3Approx">
+                    Vertex Cover 3 Approximation
+                  </option>
+                  <option value="bipartiteMaximalMatching">
+                    Bipartite Maximal Matching
+                  </option>
+                  <option value="colorReduction">Color Reduction</option>
+                </select>
+              </div>
+            </FlexItem>
+          </FlexRow>
         </div>
       </Container>
     </>
