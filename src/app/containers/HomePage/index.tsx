@@ -165,7 +165,9 @@ const SEND_FUNCTIONS = {
 
 const RECEIVE_FUNCTIONS = {
   default: `(r, p, s, m) => s;`,
-  colorReduction: `(r, d, s, m) => ([s[0], [...Array.from(s[1]), m[0]]]);`,
+  colorReduction: `(r, d, s, m) => (
+    [s[0], [...Array.from(s[1]), m[0]]]
+);`,
 };
 
 const END_ROUND_FUNCTIONS = {
@@ -176,18 +178,28 @@ const END_ROUND_FUNCTIONS = {
       for (let elem of setB) {
           _difference.delete(elem)
       }
-      return _difference
+      return Array.from(_difference)
   };
 
   const [c, others] = s;
 
-  const avail = new Set(Array.from(Array(others.length).keys()));
+  const avail = new Set(
+    Array.from((new Array(
+      Math.max.apply(null, others.concat(s[0]))
+    )).keys())
+  );
   const taken = new Set(others);
   const diff = difference(avail, taken);
   console.log('diff is', diff, avail, taken);
-  const min = Array.from(diff).length ? Array.from(diff).reduce((acc, n) => Math.min(acc, n)) : c;
+  const min = diff.length ? (
+    diff.reduce(
+      (acc, n) => Math.min(acc, n)
+    )
+  ) : c;
 
-  const greatestOthers = others.reduce((acc, n) => Math.max(acc, n));
+  const greatestOthers = others.reduce(
+    (acc, n) => Math.max(acc, n)
+  );
 
   const final = c > greatestOthers ? min : c;
 
