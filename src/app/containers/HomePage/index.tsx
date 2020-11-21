@@ -410,7 +410,10 @@ const returnNodes = linkDefinitions => {
     nodesSet.add(target);
   });
 
-  return Array.from(nodesSet);
+  const nodes = Array.from(nodesSet);
+  nodes.sort();
+
+  return nodes;
 };
 
 const debuggable = (t, name) =>
@@ -431,7 +434,12 @@ export function HomePage() {
       setLinkDefinitions(arr);
 
       const nodeIds = returnNodes(arr);
-      const nodeStates = nodeIds.map(i => initFunction.call(i));
+      const nodeStates = nodeIds.map(i =>
+        initFunction.call(
+          i,
+          arr.filter(({ source, target }) => i === source || i === target).length
+        )
+      );
 
       console.log('Set node states to ', nodeStates);
 
@@ -441,8 +449,8 @@ export function HomePage() {
   };
 
   const nodeIds = returnNodes(linkDefinitions);
-  const nodeIdsMap = new Map(nodeIds.map((value, idx) => [idx, value]));
-  console.log(nodeIdsMap);
+  const nodeIdsToIdxMap = new Map(nodeIds.map((value, idx) => [value, idx]));
+  console.log(nodeIdsToIdxMap);
   const graph = {
     nodes: nodeIds.map(id => ({
       id,
@@ -514,8 +522,8 @@ export function HomePage() {
 
   const graphDefinition = {
     nodes: nodeStates.map((c, i) => ({
-      id: nodeIdsMap.get(i),
-      label: String(c[0]),
+      id: nodeIds[i as number],
+      label: JSON.stringify(c),
       color: 'lightblue',
     })),
     links: graph.links.map(l => ({
@@ -561,15 +569,13 @@ export function HomePage() {
             const sourceTargetMsg = sendFunction.call(
               round,
               sourcePort,
-              nodeStates[source],
+              currentNodeStates[nodeIdsToIdxMap.get(source) as number],
             );
             console.log(
-              `source ${nodeIdsMap.get(source)}:${sourcePort}:${JSON.stringify(
-                currentNodeStates[nodeIdsMap.get(source) as number],
-              )} -> target ${nodeIdsMap.get(
-                target,
-              )}:${targetPort}:${JSON.stringify(
-                currentNodeStates[nodeIdsMap.get(target) as number],
+              `source ${source}:${sourcePort}:${JSON.stringify(
+                currentNodeStates[nodeIdsToIdxMap.get(source) as number],
+              )} -> target ${target}:${targetPort}:${JSON.stringify(
+                currentNodeStates[nodeIdsToIdxMap.get(target) as number],
               )} msg: ${JSON.stringify(sourceTargetMsg)}`,
             );
             messages[target][targetPort] = sourceTargetMsg;
@@ -578,15 +584,13 @@ export function HomePage() {
             const targetSourceMsg = sendFunction.call(
               round,
               targetPort,
-              currentNodeStates[target],
+              currentNodeStates[nodeIdsToIdxMap.get(target) as number],
             );
             console.log(
-              `source ${nodeIdsMap.get(target)}:${targetPort}:${JSON.stringify(
-                currentNodeStates[nodeIdsMap.get(target) as number],
-              )} -> target ${nodeIdsMap.get(
-                source,
-              )}:${sourcePort}:${JSON.stringify(
-                currentNodeStates[nodeIdsMap.get(source) as number],
+              `source ${target}:${targetPort}:${JSON.stringify(
+                currentNodeStates[nodeIdsToIdxMap.get(target) as number],
+              )} -> target ${source}:${sourcePort}:${JSON.stringify(
+                currentNodeStates[nodeIdsToIdxMap.get(source) as number],
               )} msg: ${JSON.stringify(targetSourceMsg)}`,
             );
             messages[source][sourcePort] = targetSourceMsg;
@@ -598,12 +602,12 @@ export function HomePage() {
         graphDefinition.nodes.forEach(({ id }) => {
           const nextState = receiveFunction.call(
             round,
-            currentNodeStates[nodeIdsMap.get(id as number) as number],
+            currentNodeStates[nodeIdsToIdxMap.get(id as number) as number],
             messages[id as number],
           );
           console.log(`${id} next state: ${JSON.stringify(nextState)}`);
 
-          currentNodeStates[id as number] = nextState;
+          currentNodeStates[nodeIdsToIdxMap.get(id as number) as number] = nextState;
         });
 
         return round + 1;
