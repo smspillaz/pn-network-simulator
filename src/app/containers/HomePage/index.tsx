@@ -120,7 +120,7 @@ const NodeTable = ({
       </thead>
       <tbody>
         {nodeInitialStates.map((c, i) => (
-          <tr key={c}>
+          <tr key={`${c} ${i}`}>
             <td style={{ width: '30%' }}>
               <input
                 type="text"
