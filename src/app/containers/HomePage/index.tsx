@@ -392,7 +392,7 @@ export function HomePage() {
     LINK_DEFINITIONS['default'],
   );
   const [linkDefinitions, setLinkDefinitions] = useState(
-    eval(LINK_DEFINITIONS['default']),
+    eval(LINK_DEFINITIONS['default']),  // eslint-disable-line no-eval
   );
   const updateLinksDefinition = value => {
     setLinkDefinitionsText(value);
