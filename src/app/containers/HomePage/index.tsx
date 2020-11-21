@@ -165,13 +165,73 @@ FlexItem.propTypes = {
 };
 
 const INIT_FUNCTIONS = {
-  default: `n => ([n]);`,
-  colorReduction: `n => ([n]);`,
+  default: `(n, d) => ([n]);`,
+  colorReduction: `(n, d) => ([n]);`,
+  bipartiteMaximalMatching: `(n, d) =>
+  (["Unmatched", "Running", -1, n, [], (new Array(d)).fill(1)])
+  `,
+  vertexCover3Approx: `(n, d) => ([0, 1, 1, d, -1, -1, (new Array(d)).fill(1)])`
 };
 
 const SEND_FUNCTIONS = {
   default: `(r, p, s) => ([]);`,
   colorReduction: `(r, p, s) => ([s[0]]);`,
+  bipartiteMaximalMatching: `
+  (r, p, s) => {
+    const [M, S, N, C, P, X] = s;
+    if (r % 2 === 1 && C === 1) {
+      if (M === "Unmatched" && S === "Running") {
+        if (Math.floor(r / 2) === p) {
+          return ["Propose"];
+        }
+      }
+
+      if (S === "Running" && N > -1) {
+        return ["Matched", N];
+      }
+    } else if (r % 2 === 0 && C === 0) {
+      if (M === "Unmatched" && S === "Running") {
+        if (P.length > 0 && p == Math.min.apply(null, P)) {
+          return ["Accept"];
+        }
+      }
+    }
+
+    return ["Nothing"];
+  }
+`,
+  vertexCover3Approx: `(r, p, s) => {
+  const [C, R1, R2, P, M1, M2, X] = s;
+
+  if (P === p &&
+      M2 === -1 &&
+      r % 2 === 1) {
+    // Blue node round, got proposal,
+    // not yet matched, accept
+    return ["Accept"];
+  }
+
+  if (p === Math.floor((r - 1) / 2) &&
+      r % 2 === 0 &&
+      M1 === -1 &&
+      R1 === 1) {
+    // Orange node round,
+    // propose to neighbour d
+    return ["Propose"];
+  }
+
+  if (r % 2 === 0 &&
+      M2 !== -1 &&
+      R2 === 1) {
+    // We were matched on
+    // the previous round,
+    // send accept to all neighbours
+    return ["Matched"]
+  }
+
+  return ["Nothing"]
+};
+`
 };
 
 const RECEIVE_FUNCTIONS = {
@@ -210,6 +270,124 @@ const RECEIVE_FUNCTIONS = {
 
   return [final];
 };`,
+  bipartiteMaximalMatching:   `(r, s, m) => {
+    var [M, S, N, C, P, X] = s;
+    const sum = (arr) => arr.reduce((acc, a) => acc + a, 0);
+    if (r % 2 === 1) {
+      if (C === 1) {
+        if (M === "Unmatched" && S === "Running") {
+          if (Math.floor(r / 2) >= X.length) {
+            M = "Unmatched";
+            S = "Stopped";
+          }
+        }
+      }
+
+      if (C === 0) {
+        if (M === "Unmatched" && S === "Running") {
+          m.forEach((msg, i) => {
+            if (msg[0] === "Matched") {
+              X = X.map((x, j) => i === j ? 0 : x);
+            } else if (msg[0] === "Propose") {
+              P = P.concat([i])
+            }
+          });
+        }
+      }
+    } else if (r % 2 === 0) {
+      if (C === 0) {
+        if (M === "Unmatched" && S === "Running") {
+          if (P.length !== 0) {
+            M = "Matched";
+            S = "Stopped";
+            N = Math.min.apply(null, P);
+          } else if (sum(X) === 0) {
+            M = "Unmatched";
+            S = "Stopped";
+          }
+        }
+      }
+
+      if (C === 1) {
+        if (M === "Unmatched" && S === "Running") {
+          const accepts = m.map((msg, i) => ([msg, i])).filter(([msg, i]) => msg[0] === "Accept");
+          console.assert(accepts.length <= 1, "Cannot have multiple accepts");
+
+          if (accepts.length) {
+            const [msg, p] = accepts[0];
+            M = "Matched";
+            S = "Stopped";
+            N = p;
+          }
+        }
+      }
+    }
+
+    return [M, S, N, C, P, X];
+  }`,
+  vertexCover3Approx: `(r, s, m) => {
+  const sum = arr => arr.reduce((a, acc) => acc + a, 0);
+  var [C, R1, R2, P, M1, M2, X] = s;
+
+  const incoming = m.map(
+      (msg, i) => ([msg, i])
+  ).filter(
+      ([msg, i]) =>
+          msg[0] !== "Nothing"
+  );
+
+  const accepts = incoming.filter(
+    ([msg, port]) => msg[0] === "Accept"
+  );
+  const proposals = incoming.filter(
+    ([msg, port]) => msg[0] === "Propose"
+  );
+  const matched = incoming.filter(
+    ([msg, port]) => msg[0] === "Matched"
+  );
+
+  // If there is an accept from a blue
+  // neighbour, then the orange virtual
+  // node goes into a stopped state
+  if (accepts.length && 
+      r % 2 === 1 &&
+      M1 === -1 &&
+      P > -1) {
+    const [msg, port] = accepts[0];
+    M1 = port;
+  }
+
+  if (proposals.length) {
+    const minPort = Math.min.apply(
+      null,
+      proposals.map([msg, p]) => p
+    );
+    if (r % 2 === 0 && M2 === -1) {
+      P = minPort;
+    }
+  }
+
+  if (matched.length) {
+    const [msg, p] = matched[0];
+    if (r % 2 === 0 && sum(X) === 1) {
+      R2 = 0;
+      C = 1;
+      M2 = p === P ? p : M2;
+      X = X.map((v, i) => i === p ? 0 : v);
+    }
+
+    if (r % 2 === 0 && sum(X) > 1) {
+      if (p === P) {
+        R2 = 0;
+        C = 1
+      }
+
+      X = X.map((v, i) => i === p ? 0 : v);
+    }
+  }
+
+  return [C, R1, R2, P, M1, M2, X];
+};`
 };
 
 const LINK_DEFINITIONS = {
