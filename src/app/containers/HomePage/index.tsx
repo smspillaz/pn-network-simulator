@@ -394,9 +394,10 @@ const LINK_DEFINITIONS = {
   default: `
   [
     { source: 0, target: 1, sourcePort: 0, targetPort: 0 },
-    { source: 0, target: 2, sourcePort: 1, targetPort: 0 },
-    { source: 1, target: 3, sourcePort: 1, targetPort: 0 },
-    { source: 1, target: 4, sourcePort: 2, targetPort: 0 },
+    { source: 0, target: 5, sourcePort: 2, targetPort: 0 },
+    { source: 1, target: 2, sourcePort: 1, targetPort: 1 },
+    { source: 2, target: 3, sourcePort: 0, targetPort: 1 },
+    { source: 3, target: 0, sourcePort: 0, targetPort: 1 },
   ]
 `,
 };
