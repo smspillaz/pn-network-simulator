@@ -55,9 +55,6 @@ const filterValidJSArray = (str, next) => {
   }
 };
 
-const fontSize = 14;
-const radius = 15;
-
 const NodeTable = ({
   nodeInitialStates,
   nodeInitialStateChanged,
