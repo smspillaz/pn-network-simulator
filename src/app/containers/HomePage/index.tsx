@@ -475,7 +475,7 @@ export function HomePage() {
     setRound(0);
   };
   const [initFunction, setInitFunction]: [any, CallableFunction] = useState({
-    call: n => [n],
+    call: (n, d) => [n],
   });
   const [sendFunction, setSendFunction]: [any, CallableFunction] = useState({
     call: (r, d, x) => [],
@@ -701,7 +701,12 @@ export function HomePage() {
                         setRound(0);
 
                         const nodeIds = returnNodes(linkDefinitions);
-                        const nodeStates = nodeIds.map(i => init(i));
+                        const nodeStates = nodeIds.map(
+                          i => init(
+                            i,
+                            graphDefinition.links.filter(({ source, target }) => i === source || i === target).length
+                          )
+                        );
 
                         setNodeInitialStates(nodeStates);
                         setNodeStates(nodeStates);
