@@ -531,6 +531,42 @@ export function HomePage() {
   };
   const [nodeStates, setNodeStates] = useState(Array.from(nodeInitialStates));
   const [round, setRound] = useState(0);
+  const [twoColorIntoStateIdx, set2ColorIntoStateIdx] = useState(0);
+
+  const performBfs2Coloring = () => {
+    // Perform a breadth-first search on the first node
+    // and do a 2-coloring from there
+    if (nodeIds.length === 0) {
+      return;
+    }
+
+    const q : number[][] = [];
+    q.push([nodeIds[0] as number, 0]);
+    const seen : Set<number> = new Set([]);
+
+    while (q.length !== 0) {
+      const [next, c] = q.shift() as number[];
+
+      if (seen.has(next)) {
+        continue;
+      }
+
+      seen.add(next);
+
+      const idx : number = nodeIdsToIdxMap.get(next) as number;
+      const state = nodeInitialStates[idx];
+
+      state[twoColorIntoStateIdx] = c;
+
+      setNodeInitialState(idx, state);
+
+      graphDefinition.links.forEach(({ source, target }) => {
+        if (source === next) {
+          q.push([target, c === 1 ? 0 : 1])
+        }
+      });
+    }
+  };
 
   console.log(nodeStates);
 
@@ -698,6 +734,12 @@ export function HomePage() {
                 <p>Round: {round}</p>
                 <button onClick={algorithmNext}>Next Step</button>
               </div>
+              <div>
+                <span>
+                  Two-color the graph into state index: <NumericInput onChange={set2ColorIntoStateIdx} /> <button onClick={() => performBfs2Coloring()}>Two Color</button>
+                </span>
+              </div>
+
             </FlexItem>
             <FlexItem width={20}>
               <div>
