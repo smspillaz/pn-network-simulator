@@ -483,7 +483,7 @@ export function HomePage() {
   const [receiveFunction, setReceiveFunction]: [
     any,
     CallableFunction,
-  ] = useState({ call: (r, d, x, m) => x });
+  ] = useState({ call: (r, s, m) => s });
   const [initFunctionText, setInitFunctionText] = useState(
     INIT_FUNCTIONS['default'],
   );
