@@ -5,19 +5,13 @@ import styled from 'styled-components';
 
 import { Graph } from 'react-d3-graph';
 
+import { Heading }  from '../../components/Heading';
 import { Container }  from '../../components/Container';
 import {
   filterJSON,
   filterValidJS,
   filterValidJSArray
 } from '../../../../src/utils/parse';
-
-
-
-const Heading = styled.h1`
-  font-family: Helvetica Neue;
-`;
-
 
 
 const NodeTable = ({
