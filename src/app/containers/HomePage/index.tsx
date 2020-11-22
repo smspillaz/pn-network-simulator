@@ -386,7 +386,7 @@ NumericInput.propTypes = {
 
 const debuggable = (t, name) =>
   `${t}
-//# sourceURL=${name}.js`;
+//# sourceURL=${name}`;
 
 export function HomePage() {
   const [linkDefinitionsText, setLinkDefinitionsText] = useState(
