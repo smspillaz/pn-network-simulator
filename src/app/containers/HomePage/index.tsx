@@ -6,6 +6,7 @@ import { Graph } from 'react-d3-graph';
 import { Heading }  from '../../components/Heading';
 import { Container }  from '../../components/Container';
 import { FlexRow, FlexCol, FlexItem }  from '../../components/Flex';
+import { NumericInput }  from '../../components/NumericInput';
 import {
   filterJSON,
   filterValidJS,
