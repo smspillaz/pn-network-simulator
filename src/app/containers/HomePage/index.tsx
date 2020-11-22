@@ -228,60 +228,60 @@ const RECEIVE_FUNCTIONS = {
   return [final];
 };`,
   bipartiteMaximalMatching: `(r, s, m) => {
-    var [M, S, N, C, P, X] = s;
-    const sum = (arr) => arr.reduce((acc, a) => acc + a, 0);
-    if (r % 2 === 1) {
-      if (C === 1) {
-        if (M === "Unmatched" && S === "Running") {
-          if (Math.floor(r / 2) >= X.length) {
-            M = "Unmatched";
-            S = "Stopped";
-          }
-        }
-      }
-
-      if (C === 0) {
-        if (M === "Unmatched" && S === "Running") {
-          m.forEach((msg, i) => {
-            if (msg[0] === "Matched") {
-              X = X.map((x, j) => i === j ? 0 : x);
-            } else if (msg[0] === "Propose") {
-              P = P.concat([i])
-            }
-          });
-        }
-      }
-    } else if (r % 2 === 0) {
-      if (C === 0) {
-        if (M === "Unmatched" && S === "Running") {
-          if (P.length !== 0) {
-            M = "Matched";
-            S = "Stopped";
-            N = Math.min.apply(null, P);
-          } else if (sum(X) === 0) {
-            M = "Unmatched";
-            S = "Stopped";
-          }
-        }
-      }
-
-      if (C === 1) {
-        if (M === "Unmatched" && S === "Running") {
-          const accepts = m.map((msg, i) => ([msg, i])).filter(([msg, i]) => msg[0] === "Accept");
-          console.assert(accepts.length <= 1, "Cannot have multiple accepts");
-
-          if (accepts.length) {
-            const [msg, p] = accepts[0];
-            M = "Matched";
-            S = "Stopped";
-            N = p;
-          }
+  var [M, S, N, C, P, X] = s;
+  const sum = (arr) => arr.reduce((acc, a) => acc + a, 0);
+  if (r % 2 === 1) {
+    if (C === 1) {
+      if (M === "Unmatched" && S === "Running") {
+        if (Math.floor(r / 2) >= X.length) {
+          M = "Unmatched";
+          S = "Stopped";
         }
       }
     }
 
-    return [M, S, N, C, P, X];
-  }`,
+    if (C === 0) {
+      if (M === "Unmatched" && S === "Running") {
+        m.forEach((msg, i) => {
+          if (msg[0] === "Matched") {
+            X = X.map((x, j) => i === j ? 0 : x);
+          } else if (msg[0] === "Propose") {
+            P = P.concat([i])
+          }
+        });
+      }
+    }
+  } else if (r % 2 === 0) {
+    if (C === 0) {
+      if (M === "Unmatched" && S === "Running") {
+        if (P.length !== 0) {
+          M = "Matched";
+          S = "Stopped";
+          N = Math.min.apply(null, P);
+        } else if (sum(X) === 0) {
+          M = "Unmatched";
+          S = "Stopped";
+        }
+      }
+    }
+
+    if (C === 1) {
+      if (M === "Unmatched" && S === "Running") {
+        const accepts = m.map((msg, i) => ([msg, i])).filter(([msg, i]) => msg[0] === "Accept");
+        console.assert(accepts.length <= 1, "Cannot have multiple accepts");
+
+        if (accepts.length) {
+          const [msg, p] = accepts[0];
+          M = "Matched";
+          S = "Stopped";
+          N = p;
+        }
+      }
+    }
+  }
+
+  return [M, S, N, C, P, X];
+}`,
   vertexCover3Approx: `(r, s, m) => {
   var [S, M1, M2, S1, S2, P1, P2, X1, X2] = s;
   const sum = (arr) => arr.reduce((acc, a) => acc + a, 0);
