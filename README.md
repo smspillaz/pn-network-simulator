@@ -2,7 +2,7 @@
 
 This simulator can be used to test the behaviour of 
 distributed algorithms written
-for the [PN Model](https://dl.acm.org/doi/abs/10.1145/800141.804655). It is a (self-contained web-application)[https://pn-network-simulator.sspilsbury.com]
+for the [PN Model](https://dl.acm.org/doi/abs/10.1145/800141.804655). It is a [self-contained web-application](https://pn-network-simulator.sspilsbury.com)
 that runs entirely in your browser and comes pre-packed
 with an implementation of some distributed algorithms
 like graph color reduction, bipartite maximal matching
