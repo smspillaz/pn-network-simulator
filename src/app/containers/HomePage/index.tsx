@@ -120,7 +120,7 @@ const INIT_FUNCTIONS = {
   bipartiteMaximalMatching: `(n, d) =>
   (["Unmatched", "Running", -1, n, [], (new Array(d)).fill(1)])
   `,
-  vertexCover3Approx: `(n, d) => ([0, 1, 1, d, -1, -1, (new Array(d)).fill(1)])`
+  vertexCover3Approx: `(n, d) => ([0, 1, 1, d, -1, -1, (new Array(d)).fill(1)])`,
 };
 
 const SEND_FUNCTIONS = {
@@ -181,7 +181,7 @@ const SEND_FUNCTIONS = {
 
   return ["Nothing"]
 };
-`
+`,
 };
 
 const RECEIVE_FUNCTIONS = {
@@ -220,7 +220,7 @@ const RECEIVE_FUNCTIONS = {
 
   return [final];
 };`,
-  bipartiteMaximalMatching:   `(r, s, m) => {
+  bipartiteMaximalMatching: `(r, s, m) => {
     var [M, S, N, C, P, X] = s;
     const sum = (arr) => arr.reduce((acc, a) => acc + a, 0);
     if (r % 2 === 1) {
@@ -337,7 +337,7 @@ const RECEIVE_FUNCTIONS = {
   }
 
   return [C, R1, R2, P, M1, M2, X];
-};`
+};`,
 };
 
 const LINK_DEFINITIONS = {
@@ -370,14 +370,19 @@ const NumericInput = ({ onChange }) => {
   return (
     <input
       type="text"
-      style={{ width: '20px '}}
+      style={{ width: '20px ' }}
       defaultValue="0"
-      onChange={e => !Number.isNaN(Number.parseInt(e.target.value)) ? onChange(Number.parseInt(e.target.value)) : null }></input>
-  )
+      onChange={e =>
+        !Number.isNaN(Number.parseInt(e.target.value))
+          ? onChange(Number.parseInt(e.target.value))
+          : null
+      }
+    ></input>
+  );
 };
 
 NumericInput.propTypes = {
-  onChange: PropTypes.func.isRequired
+  onChange: PropTypes.func.isRequired,
 };
 
 const debuggable = (t, name) =>
@@ -389,7 +394,7 @@ export function HomePage() {
     LINK_DEFINITIONS['default'],
   );
   const [linkDefinitions, setLinkDefinitions] = useState(
-    eval(LINK_DEFINITIONS['default']),  // eslint-disable-line no-eval
+    eval(LINK_DEFINITIONS['default']), // eslint-disable-line no-eval
   );
   const updateLinksDefinition = value => {
     setLinkDefinitionsText(value);
@@ -401,8 +406,9 @@ export function HomePage() {
       const nodeStates = nodeIds.map(i =>
         initFunction.call(
           i,
-          arr.filter(({ source, target }) => i === source || i === target).length
-        )
+          arr.filter(({ source, target }) => i === source || i === target)
+            .length,
+        ),
       );
 
       console.log('Set node states to ', nodeStates);
@@ -490,9 +496,9 @@ export function HomePage() {
       return;
     }
 
-    const q : number[][] = [];
+    const q: number[][] = [];
     q.push([nodeIds[0] as number, 0]);
-    const seen : Set<number> = new Set([]);
+    const seen: Set<number> = new Set([]);
 
     while (q.length !== 0) {
       const [next, c] = q.shift() as number[];
@@ -503,7 +509,7 @@ export function HomePage() {
 
       seen.add(next);
 
-      const idx : number = nodeIdsToIdxMap.get(next) as number;
+      const idx: number = nodeIdsToIdxMap.get(next) as number;
       const state = nodeInitialStates[idx];
 
       state[twoColorIntoStateIdx] = c;
@@ -512,7 +518,7 @@ export function HomePage() {
 
       graphDefinition.links.forEach(({ source, target }) => {
         if (source === next) {
-          q.push([target, c === 1 ? 0 : 1])
+          q.push([target, c === 1 ? 0 : 1]);
         }
       });
     }
@@ -607,7 +613,9 @@ export function HomePage() {
           );
           console.log(`${id} next state: ${JSON.stringify(nextState)}`);
 
-          currentNodeStates[nodeIdsToIdxMap.get(id as number) as number] = nextState;
+          currentNodeStates[
+            nodeIdsToIdxMap.get(id as number) as number
+          ] = nextState;
         });
 
         return round + 1;
@@ -686,10 +694,13 @@ export function HomePage() {
               </div>
               <div>
                 <span>
-                  Two-color the graph into state index: <NumericInput onChange={set2ColorIntoStateIdx} /> <button onClick={() => performBfs2Coloring()}>Two Color</button>
+                  Two-color the graph into state index:{' '}
+                  <NumericInput onChange={set2ColorIntoStateIdx} />{' '}
+                  <button onClick={() => performBfs2Coloring()}>
+                    Two Color
+                  </button>
                 </span>
               </div>
-
             </FlexItem>
             <FlexItem width={20}>
               <div>
@@ -707,11 +718,14 @@ export function HomePage() {
                         setRound(0);
 
                         const nodeIds = returnNodes(linkDefinitions);
-                        const nodeStates = nodeIds.map(
-                          i => init(
+                        const nodeStates = nodeIds.map(i =>
+                          init(
                             i,
-                            graphDefinition.links.filter(({ source, target }) => i === source || i === target).length
-                          )
+                            graphDefinition.links.filter(
+                              ({ source, target }) =>
+                                i === source || i === target,
+                            ).length,
+                          ),
                         );
 
                         setNodeInitialStates(nodeStates);
