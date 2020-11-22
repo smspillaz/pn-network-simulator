@@ -21,6 +21,10 @@ const Container = styled.div`
   @media (min-width: 960px) {
     max-width: 900px;
   }
+
+  @media (min-width: 1600px) {
+    max-width: 1300px;
+  }
 `;
 
 const Heading = styled.h1`
