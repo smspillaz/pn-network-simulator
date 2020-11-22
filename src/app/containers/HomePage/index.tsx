@@ -7,6 +7,7 @@ import { Graph } from 'react-d3-graph';
 
 import { Heading }  from '../../components/Heading';
 import { Container }  from '../../components/Container';
+import { FlexRow, FlexCol, FlexItem }  from '../../components/Flex';
 import {
   filterJSON,
   filterValidJS,
@@ -49,29 +50,7 @@ const NodeTable = ({
   );
 };
 
-const FlexRow = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-`;
 
-const FlexCol = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-`;
-
-const FlexItem = styled.div`
-  width: ${(props: FlexItemProps) => props.width}%;
-`;
-
-interface FlexItemProps {
-  width: number;
-}
-
-FlexItem.propTypes = {
-  width: PropTypes.number.isRequired,
-};
 
 const INIT_FUNCTIONS = {
   default: `(n, d) => ([n]);`,
